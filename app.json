@@ -1,13 +1,19 @@
 {
   "expo": {
-    "name": "cosmo-app",
+    "name": "COSMO",
     "slug": "cosmo-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "plugins": [
+      "expo-location"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "오늘 밤 하늘에서 볼 수 있는 별자리와 행성을 알려드리기 위해 위치 정보가 필요해요!"
+      }
     },
     "android": {
       "adaptiveIcon": {
