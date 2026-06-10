@@ -54,7 +54,7 @@
 | Iron Golem 🤖 | 수호자 | 정확·신뢰감 |
 | Creeper 💚 | 장난꾸러기 | 과장·흥분 |
 
-Claude API 연동, 캐릭터별 개성 있는 시스템 프롬프트 적용
+선택형 AI 프록시 연동, 캐릭터별 개성 있는 시스템 프롬프트 적용
 
 ### 기타
 - 🔍 오늘의 우주 발견 (카드 뒤집기 애니메이션)
@@ -73,7 +73,7 @@ Claude API 연동, 캐릭터별 개성 있는 시스템 프롬프트 적용
 | Navigation | React Navigation v7 (Bottom Tabs) |
 | State | Zustand + AsyncStorage |
 | Animation | React Native Animated API |
-| AI | Claude API (claude-haiku) |
+| AI | Optional server-side AI proxy |
 | Styling | StyleSheet + expo-linear-gradient |
 | Haptics | expo-haptics |
 | Location | expo-location |
@@ -94,11 +94,12 @@ npm install
 
 ```bash
 cp .env.example .env
-# .env 파일에 Claude API 키 입력
-# EXPO_PUBLIC_ANTHROPIC_API_KEY=sk-ant-...
+# 선택 사항: 서버 측 AI 프록시 URL 입력
+# EXPO_PUBLIC_AI_PROXY_URL=https://your-domain.example.com/api/cosmo-chat
 ```
 
-> API 키 없이도 앱 동작합니다. AI 동반자가 오프라인 폴백 응답으로 자동 전환됩니다.
+> API 키 없이도 앱은 동작합니다. AI 동반자가 오프라인 폴백 응답으로 자동 전환됩니다.
+> Anthropic/OpenAI 같은 외부 API 키는 Expo 앱의 `EXPO_PUBLIC_*` 환경변수에 넣지 마세요. 이 값은 클라이언트 번들에 포함되므로, 실제 API 키는 서버 프록시나 백엔드 환경변수에만 보관해야 합니다.
 
 ### 3. 실행
 
@@ -186,3 +187,10 @@ cosmo-app/
 - **대상**: 초등학교 4-6학년 (10-12세)
 - **플랫폼**: iOS / Android / Web
 - **AI 보조 개발**: Claude (Anthropic)
+
+## 🔐 보안 주의사항
+
+- `.env`는 로컬 전용 파일이며 GitHub에 올리지 않습니다.
+- Expo의 `EXPO_PUBLIC_*` 환경변수에는 공개되어도 되는 값만 넣습니다.
+- 외부 AI API Key, Firebase/Supabase Secret, 배포 토큰은 서버 환경변수나 배포 플랫폼 Secret으로 관리합니다.
+- `node_modules`, `.expo`, 빌드 산출물, 로그 파일은 저장소에 커밋하지 않습니다.

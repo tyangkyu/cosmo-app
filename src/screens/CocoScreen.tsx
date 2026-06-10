@@ -23,6 +23,8 @@ const SUGGESTED: Record<string, string[]> = {
   creeper: ['우주에서 폭발하면?', '제일 신기한 우주 사실은?', '블랙홀에 빠지면 어떻게 돼?'],
 };
 
+const AI_PROXY_URL = process.env.EXPO_PUBLIC_AI_PROXY_URL?.trim();
+
 export const CocoScreen: React.FC = () => {
   const { selectedCharacterId, setCharacter } = useStore();
   const [showPicker, setShowPicker] = useState(false);
@@ -54,23 +56,28 @@ export const CocoScreen: React.FC = () => {
         content: m.text,
       }));
 
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const proxyUrl = getAiProxyUrl();
+      if (!proxyUrl) {
+        throw new Error('AI proxy is not configured');
+      }
+
+      const res = await fetch(proxyUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY || '',
-          'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 250,
-          system: char.systemPrompt,
+          characterId: char.id,
+          systemPrompt: char.systemPrompt,
           messages: [...history, { role: 'user', content: text.trim() }],
         }),
       });
 
+      if (!res.ok) {
+        throw new Error(`AI proxy failed: ${res.status}`);
+      }
       const data = await res.json();
-      const reply = data.content?.[0]?.text || getLocalFallback(text, char.id);
+      const reply = getProxyReply(data) || getLocalFallback(text, char.id);
       setMessages(prev => [...prev, { role: 'char', text: reply, characterId: char.id }]);
     } catch {
       setMessages(prev => [...prev, {
@@ -205,6 +212,28 @@ export const CocoScreen: React.FC = () => {
     </LinearGradient>
   );
 };
+
+function getAiProxyUrl(): string | null {
+  if (!AI_PROXY_URL) return null;
+  try {
+    const parsed = new URL(AI_PROXY_URL);
+    const isLocalDev = ['localhost', '127.0.0.1'].includes(parsed.hostname);
+    if (parsed.protocol === 'https:' || (parsed.protocol === 'http:' && isLocalDev)) {
+      return parsed.toString();
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function getProxyReply(data: unknown): string | null {
+  if (!data || typeof data !== 'object') return null;
+  const payload = data as { reply?: unknown; text?: unknown };
+  if (typeof payload.reply === 'string' && payload.reply.trim()) return payload.reply.trim();
+  if (typeof payload.text === 'string' && payload.text.trim()) return payload.text.trim();
+  return null;
+}
 
 function getLocalFallback(q: string, charId: string): string {
   const text = q.toLowerCase();
